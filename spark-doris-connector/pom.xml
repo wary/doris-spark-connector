@@ -27,7 +27,7 @@
     </parent>
     <groupId>org.apache.doris</groupId>
     <artifactId>spark-doris-connector</artifactId>
-    <version>${revision}</version>
+    <version>25.1.0-MUSIC-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Spark Doris Connector</name>
     <url>https://doris.apache.org/</url>
@@ -79,7 +79,7 @@
     </mailingLists>
 
     <properties>
-        <revision>25.1.0-SNAPSHOT</revision>
+        <revision>25.1.0-MUSIC-SNAPSHOT</revision>
         <spark.version>2.4.8</spark.version>
         <spark.major.version>2.4</spark.major.version>
         <scala.version>2.11.12</scala.version>
@@ -854,5 +854,16 @@
             </properties>
         </profile>
     </profiles>
-
+    <distributionManagement>
+        <repository>
+            <id>repo</id>
+            <name>Nexus Releases Repository</name>
+            <url>http://mvn.hz.netease.com/artifactory/libs-releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <name>Nexus Snapshots Repository</name>
+            <url>http://mvn.hz.netease.com/artifactory/libs-snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>
