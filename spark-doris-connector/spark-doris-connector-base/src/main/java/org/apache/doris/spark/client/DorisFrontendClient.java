@@ -17,13 +17,6 @@
 
 package org.apache.doris.spark.client;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.google.common.collect.ImmutableMap;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.doris.spark.client.entity.Backend;
 import org.apache.doris.spark.client.entity.Frontend;
 import org.apache.doris.spark.config.DorisConfig;
@@ -35,6 +28,14 @@ import org.apache.doris.spark.rest.models.QueryPlan;
 import org.apache.doris.spark.rest.models.Schema;
 import org.apache.doris.spark.util.HttpUtils;
 import org.apache.doris.spark.util.URLs;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.collect.ImmutableMap;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -48,7 +49,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.sql.*;
+import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -96,15 +102,17 @@ public class DorisFrontendClient implements Serializable {
             for (String frontendNode : frontendNodeArray) {
                 String[] nodeDetails = frontendNode.split(":");
                 try {
-                    List<Frontend> list = Collections.singletonList(new Frontend(nodeDetails[0], nodeDetails.length > 1 ? Integer.parseInt(nodeDetails[1]) : -1));
+                    List<Frontend> list = Collections.singletonList(new Frontend(nodeDetails[0],
+                            nodeDetails.length > 1 ? Integer.parseInt(nodeDetails[1]) : -1));
                     frontendList = requestFrontends(list, (frontend, client) -> {
-                        String feReqURL = URLs.getFrontEndNodes(frontend.getHost(), frontend.getHttpPort(), isHttpsEnabled);
-                        HttpGet httpGet = new HttpGet(feReqURL);
+                        String url = URLs.getFrontEndNodes(frontend.getHost(), frontend.getHttpPort(),
+                                isHttpsEnabled);
+                        HttpGet httpGet = new HttpGet(url);
                         HttpUtils.setAuth(httpGet, username, password);
                         JsonNode dataNode;
                         try {
                             HttpResponse response = client.execute(httpGet);
-                            dataNode = extractDataFromResponse(response, feReqURL);
+                            dataNode = extractDataFromResponse(response, url);
                         } catch (IOException e) {
                             throw new RuntimeException("fetch fe failed", e);
                         }
@@ -300,7 +308,10 @@ public class DorisFrontendClient implements Serializable {
                 HttpPost httpPost = new HttpPost(url);
                 HttpUtils.setAuth(httpPost, username, password);
                 String body = MAPPER.writeValueAsString(ImmutableMap.of("sql", sql));
-                httpPost.setEntity(new StringEntity(body));
+                StringEntity stringEntity = new StringEntity(body, StandardCharsets.UTF_8);
+                stringEntity.setContentEncoding("UTF-8");
+                stringEntity.setContentType("application/json");
+                httpPost.setEntity(stringEntity);
                 HttpResponse response = httpClient.execute(httpPost);
                 JsonNode dataJsonNode = extractDataFromResponse(response, url);
                 if (dataJsonNode.get("exception") != null) {
@@ -315,68 +326,68 @@ public class DorisFrontendClient implements Serializable {
 
 
     private JsonNode extractDataFromResponse(HttpResponse response, String url) throws IOException {
-            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                throw new RuntimeException("request fe with url: [" + url + "] failed with http code: "
-                        + response.getStatusLine().getStatusCode() + ", reason: "
-                        + response.getStatusLine().getReasonPhrase());
-            }
-            String entity = EntityUtils.toString(response.getEntity());
-            JsonNode respNode = MAPPER.readTree(entity);
-            String code = respNode.get("code").asText();
-            if (!"0".equalsIgnoreCase(code)) {
-                throw new RuntimeException("fetch fe url: [" + url + "]  failed with invalid msg code, response: " + entity);
-            }
-            return respNode.get("data");
+        if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+            throw new RuntimeException("request fe with url: [" + url + "] failed with http code: "
+                    + response.getStatusLine().getStatusCode() + ", reason: "
+                    + response.getStatusLine().getReasonPhrase());
         }
-
-        public String[] getTableAllColumns (String db, String table) throws Exception {
-            Schema tableSchema = getTableSchema(db, table);
-            return tableSchema.getProperties().stream().map(Field::getName).toArray(String[]::new);
+        String entity = EntityUtils.toString(response.getEntity());
+        JsonNode respNode = MAPPER.readTree(entity);
+        String code = respNode.get("code").asText();
+        if (!"0".equalsIgnoreCase(code)) {
+            throw new RuntimeException("fetch fe url:[" + url + "] failed with invalid msg code, response: " + entity);
         }
-
-        public List<Backend> getAliveBackends () throws Exception {
-            return requestFrontends((frontend, client) -> {
-                String url = URLs.aliveBackend(frontend.getHost(), frontend.getHttpPort(), isHttpsEnabled);
-                HttpGet httpGet = new HttpGet(url);
-                HttpUtils.setAuth(httpGet, username, password);
-                ArrayNode backendsNode;
-                try {
-                    CloseableHttpResponse res = client.execute(httpGet);
-                    JsonNode dataNode = extractDataFromResponse(res, url);
-                    backendsNode = (ArrayNode) dataNode.get("backends");
-                } catch (IOException e) {
-                    throw new RuntimeException("get alive backends failed", e);
-                }
-                List<Backend> backends = new ArrayList<>();
-                for (JsonNode backendNode : backendsNode) {
-                    if ("true".equalsIgnoreCase(backendNode.get("is_alive").asText())) {
-                        backends.add(new Backend(backendNode.get("ip").asText(), backendNode.get("http_port").asInt(), -1));
-                    }
-                }
-                return backends;
-            });
-        }
-
-        public void truncateTable (String database, String table) throws Exception {
-            queryFrontends(conn -> {
-                String sql = "TRUNCATE TABLE " + database + "." + table;
-                try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
-                    preparedStatement.execute();
-                    return null;
-                } catch (SQLException e) {
-                    throw new RuntimeException("truncate table failed", e);
-                }
-            });
-        }
-
-        public List<Frontend> getFrontends () {
-            return frontends;
-        }
-
-        public void close () throws IOException {
-            if (httpClient != null) {
-                httpClient.close();
-            }
-        }
-
+        return respNode.get("data");
     }
+
+    public String[] getTableAllColumns(String db, String table) throws Exception {
+        Schema tableSchema = getTableSchema(db, table);
+        return tableSchema.getProperties().stream().map(Field::getName).toArray(String[]::new);
+    }
+
+    public List<Backend> getAliveBackends() throws Exception {
+        return requestFrontends((frontend, client) -> {
+            String url = URLs.aliveBackend(frontend.getHost(), frontend.getHttpPort(), isHttpsEnabled);
+            HttpGet httpGet = new HttpGet(url);
+            HttpUtils.setAuth(httpGet, username, password);
+            ArrayNode backendsNode;
+            try {
+                CloseableHttpResponse res = client.execute(httpGet);
+                JsonNode dataNode = extractDataFromResponse(res, url);
+                backendsNode = (ArrayNode) dataNode.get("backends");
+            } catch (IOException e) {
+                throw new RuntimeException("get alive backends failed", e);
+            }
+            List<Backend> backends = new ArrayList<>();
+            for (JsonNode backendNode : backendsNode) {
+                if ("true".equalsIgnoreCase(backendNode.get("is_alive").asText())) {
+                    backends.add(new Backend(backendNode.get("ip").asText(), backendNode.get("http_port").asInt(), -1));
+                }
+            }
+            return backends;
+        });
+    }
+
+    public void truncateTable(String database, String table) throws Exception {
+        queryFrontends(conn -> {
+            String sql = "TRUNCATE TABLE " + database + "." + table;
+            try (PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+                preparedStatement.execute();
+                return null;
+            } catch (SQLException e) {
+                throw new RuntimeException("truncate table failed", e);
+            }
+        });
+    }
+
+    public List<Frontend> getFrontends() {
+        return frontends;
+    }
+
+    public void close() throws IOException {
+        if (httpClient != null) {
+            httpClient.close();
+        }
+    }
+
+}
