@@ -24,7 +24,7 @@
 
     <groupId>org.apache.doris</groupId>
     <artifactId>spark-load</artifactId>
-    <version>25.1.0-MUSIC-SNAPSHOT</version>
+    <version>25.1.0.1-MUSIC-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules>
         <module>spark-load-common</module>

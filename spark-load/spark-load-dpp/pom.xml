@@ -22,7 +22,7 @@ under the License.
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.apache.doris</groupId>
-        <version>25.1.0-MUSIC-SNAPSHOT</version>
+        <version>25.1.0.1-MUSIC-SNAPSHOT</version>
         <artifactId>spark-load</artifactId>
     </parent>
     <artifactId>spark-load-dpp</artifactId>

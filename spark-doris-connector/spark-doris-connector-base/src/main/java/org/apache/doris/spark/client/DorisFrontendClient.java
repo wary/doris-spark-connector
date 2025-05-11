@@ -381,7 +381,9 @@ public class DorisFrontendClient implements Serializable {
     }
 
     public List<Frontend> getFrontends() {
-        return frontends;
+        List<Frontend> fList =  new ArrayList<>(frontends);
+        Collections.shuffle(fList);
+        return fList;
     }
 
     public void close() throws IOException {

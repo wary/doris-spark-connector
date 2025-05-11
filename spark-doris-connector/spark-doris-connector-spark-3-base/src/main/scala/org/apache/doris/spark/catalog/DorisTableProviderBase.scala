@@ -18,6 +18,7 @@
 package org.apache.doris.spark.catalog
 
 import org.apache.doris.spark.config.{DorisConfig, DorisOptions}
+import org.apache.spark.SparkContext
 import org.apache.spark.sql.connector.catalog.{Identifier, Table, TableProvider}
 import org.apache.spark.sql.connector.expressions.Transform
 import org.apache.spark.sql.types.StructType
@@ -38,6 +39,7 @@ abstract class DorisTableProviderBase extends TableProvider {
     if (t != null) t
     else {
       val dorisConfig = DorisConfig.fromMap(properties, false)
+      fillDefaultConfig(dorisConfig)
       val tableIdentifier = dorisConfig.getValue(DorisOptions.DORIS_TABLE_IDENTIFIER)
       val tableIdentifierArr = tableIdentifier.split("\\.")
       newTableInstance(Identifier.of(Array[String](tableIdentifierArr(0)), tableIdentifierArr(1)), dorisConfig, Some(schema))
@@ -48,10 +50,18 @@ abstract class DorisTableProviderBase extends TableProvider {
     if (t != null) t
     else {
       val dorisConfig = DorisConfig.fromMap(options, false)
+      fillDefaultConfig(dorisConfig)
       val tableIdentifier = dorisConfig.getValue(DorisOptions.DORIS_TABLE_IDENTIFIER)
       val tableIdentifierArr = tableIdentifier.split("\\.")
       newTableInstance(Identifier.of(Array[String](tableIdentifierArr(0)), tableIdentifierArr(1)), dorisConfig, None)
     }
+  }
+
+  private def fillDefaultConfig(config: DorisConfig): Unit = {
+    if (!config.contains(DorisOptions.DORIS_READ_FLIGHT_SQL_PREFIX)) {
+      config.setProperty(DorisOptions.DORIS_READ_FLIGHT_SQL_PREFIX,
+              s"SparkApp ${SparkContext.getOrCreate().applicationId} ArrowFlightSQL Query")
+      }
   }
 
   def newTableInstance(identifier: Identifier, config: DorisConfig, schema: Option[StructType]): Table;
