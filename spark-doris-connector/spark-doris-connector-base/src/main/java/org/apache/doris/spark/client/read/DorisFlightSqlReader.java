@@ -39,10 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -60,7 +57,8 @@ public class DorisFlightSqlReader extends DorisReader {
     public DorisFlightSqlReader(DorisReaderPartition partition) throws Exception {
         super(partition);
         this.frontendClient = new DorisFrontendClient(partition.getConfig());
-        List<Frontend> frontends = frontendClient.getFrontends();
+        List<Frontend> frontends = new ArrayList<>(frontendClient.getFrontends());
+        Collections.shuffle(frontends);
         Exception tx = null;
         for (Frontend frontend : frontends) {
             try {
@@ -68,7 +66,9 @@ public class DorisFlightSqlReader extends DorisReader {
                 this.connection = initializeConnection(frontend, partition.getConfig());
                 tx = null;
                 break;
-            } catch (OptionRequiredException | AdbcException e) {
+            } catch (OptionRequiredException e) {
+                throw new DorisException("init adbc connection failed", e);
+            } catch (AdbcException e) {
                 tx = new DorisException("init adbc connection failed", e);
             }
         }
