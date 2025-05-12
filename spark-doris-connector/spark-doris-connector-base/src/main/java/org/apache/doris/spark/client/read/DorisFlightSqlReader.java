@@ -118,6 +118,7 @@ public class DorisFlightSqlReader extends DorisReader {
         if (connection != null) {
             try {
                 connection.close();
+                log.info("close arrow flight query connection");
             } catch (Exception e) {
                 log.warn("close adbc connection error", e);
             }
