@@ -17,6 +17,13 @@
 
 package org.apache.doris.spark.client.read;
 
+import org.apache.arrow.adbc.core.*;
+import org.apache.arrow.adbc.driver.flightsql.FlightSqlDriver;
+import org.apache.arrow.flight.Location;
+import org.apache.arrow.memory.BufferAllocator;
+import org.apache.arrow.memory.RootAllocator;
+import org.apache.arrow.vector.ipc.ArrowReader;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.doris.sdk.thrift.TPrimitiveType;
 import org.apache.doris.spark.client.DorisFrontendClient;
 import org.apache.doris.spark.client.entity.DorisReaderPartition;
@@ -28,18 +35,6 @@ import org.apache.doris.spark.exception.OptionRequiredException;
 import org.apache.doris.spark.exception.ShouldNeverHappenException;
 import org.apache.doris.spark.rest.models.Field;
 import org.apache.doris.spark.rest.models.Schema;
-
-import org.apache.arrow.adbc.core.AdbcConnection;
-import org.apache.arrow.adbc.core.AdbcDatabase;
-import org.apache.arrow.adbc.core.AdbcDriver;
-import org.apache.arrow.adbc.core.AdbcException;
-import org.apache.arrow.adbc.core.AdbcStatement;
-import org.apache.arrow.adbc.driver.flightsql.FlightSqlDriver;
-import org.apache.arrow.flight.Location;
-import org.apache.arrow.memory.BufferAllocator;
-import org.apache.arrow.memory.RootAllocator;
-import org.apache.arrow.vector.ipc.ArrowReader;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,10 +69,10 @@ public class DorisFlightSqlReader extends DorisReader {
                 tx = null;
                 break;
             } catch (OptionRequiredException | AdbcException e) {
-                tx =  new DorisException("init adbc connection failed", e);
+                tx = new DorisException("init adbc connection failed", e);
             }
         }
-		if (tx != null) {
+        if (tx != null) {
             throw tx;
         }
         this.schema = processDorisSchema(partition);
@@ -155,8 +150,15 @@ public class DorisFlightSqlReader extends DorisReader {
         String tablets = String.format("TABLET(%s)", StringUtils.join(partition.getTablets(), ","));
         String predicates = partition.getFilters().length == 0 ? "" : " WHERE " + String.join(" AND ", partition.getFilters());
         String limit = partition.getLimit() > 0 ? " LIMIT " + partition.getLimit() : "";
-        String prefix = String.format("/* %s */",  config.getValue(DorisOptions.DORIS_READ_FLIGHT_SQL_PREFIX));
-        return  prefix + String.format("SELECT %s FROM %s %s%s%s", columns, fullTableName, tablets, predicates, limit);
+        return generateQueryPrefix() + String.format("SELECT %s FROM %s %s%s%s", columns, fullTableName, tablets, predicates, limit);
+    }
+
+    private String generateQueryPrefix() throws OptionRequiredException {
+        String prefix = config.getValue(DorisOptions.DORIS_READ_FLIGHT_SQL_PREFIX);
+        if (StringUtils.isBlank(prefix)) {
+            prefix = String.format("SparkApp %s ArrowFlightQuery", config.getValue(DorisOptions.DORIS_REQUEST_APP));
+        }
+        return String.format("/* %s */", prefix);
     }
 
     protected Schema processDorisSchema(DorisReaderPartition partition) throws Exception {

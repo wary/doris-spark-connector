@@ -16,18 +16,17 @@
 // under the License.
 package org.apache.doris.spark.client.write;
 
-import java.nio.charset.StandardCharsets;
-import org.apache.doris.spark.config.DorisConfig;
-import org.apache.doris.spark.config.DorisOptions;
-import org.apache.doris.spark.exception.OptionRequiredException;
-import org.apache.doris.spark.rest.models.DataFormat;
-import org.apache.doris.spark.util.RowConvertors;
-
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.VectorSchemaRoot;
 import org.apache.arrow.vector.dictionary.DictionaryProvider;
 import org.apache.arrow.vector.ipc.ArrowStreamWriter;
 import org.apache.arrow.vector.types.pojo.Schema;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.doris.spark.config.DorisConfig;
+import org.apache.doris.spark.config.DorisOptions;
+import org.apache.doris.spark.exception.OptionRequiredException;
+import org.apache.doris.spark.rest.models.DataFormat;
+import org.apache.doris.spark.util.RowConvertors;
 import org.apache.spark.TaskContext;
 import org.apache.spark.sql.catalyst.InternalRow;
 import org.apache.spark.sql.execution.arrow.ArrowWriter;
@@ -37,6 +36,7 @@ import org.apache.spark.sql.util.DorisArrowUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class StreamLoadProcessor extends AbstractStreamLoadProcessor<InternalRow> {
@@ -79,7 +79,7 @@ public class StreamLoadProcessor extends AbstractStreamLoadProcessor<InternalRow
         switch (format) {
             case CSV:
                 return RowConvertors.convertToCsv(row, schema, columnSeparator).getBytes(
-                    StandardCharsets.UTF_8);
+                        StandardCharsets.UTF_8);
             case JSON:
                 return RowConvertors.convertToJsonBytes(row, schema);
             default:
@@ -110,6 +110,9 @@ public class StreamLoadProcessor extends AbstractStreamLoadProcessor<InternalRow
         long taskAttemptId = taskContext.taskAttemptId();
         int partitionId = taskContext.partitionId();
         String prefix = config.getValue(DorisOptions.DORIS_SINK_LABEL_PREFIX);
+        if (StringUtils.isBlank(prefix)) {
+            prefix = config.getValue(DorisOptions.DORIS_REQUEST_APP);
+        }
         return String.format("%s-%d-%d-%d-%d", prefix, stageId, taskAttemptId, partitionId, System.currentTimeMillis());
     }
 

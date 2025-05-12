@@ -44,6 +44,7 @@ public class DorisOptions {
     public static final String DORIS_REQUEST_AUTH_USER = "doris.request.auth.user";
     public static final String DORIS_REQUEST_AUTH_PASSWORD = "doris.request.auth.password";
 
+    public static final ConfigOption<String>  DORIS_REQUEST_APP = ConfigOptions.name("doris.request.app").stringType().defaultValue("").withDescription("");
     public static final ConfigOption<Integer> DORIS_REQUEST_RETRIES = ConfigOptions.name("doris.request.retries").intType().defaultValue(3).withDescription("");
     public static final ConfigOption<Integer> DORIS_REQUEST_CONNECT_TIMEOUT_MS = ConfigOptions.name("doris.request.connect.timeout.ms").intType().defaultValue(30 * 1000).withDescription("");
     public static final ConfigOption<Integer> DORIS_REQUEST_READ_TIMEOUT_MS = ConfigOptions.name("doris.request.read.timeout.ms").intType().defaultValue(30 * 1000).withDescription("");
@@ -118,7 +119,7 @@ public class DorisOptions {
 
     public static final ConfigOption<String> READ_MODE = ConfigOptions.name("doris.read.mode").stringType().defaultValue("thrift").withDescription("");
 
-    public static final ConfigOption<String> DORIS_READ_FLIGHT_SQL_PREFIX = ConfigOptions.name("doris.read.arrow-flight-sql.prefix").stringType().defaultValue("Spark ArrowFlightSQL Query").withDescription("");
+    public static final ConfigOption<String> DORIS_READ_FLIGHT_SQL_PREFIX = ConfigOptions.name("doris.read.arrow-flight-sql.prefix").stringType().defaultValue("").withDescription("");
 
     public static final ConfigOption<Integer> DORIS_READ_FLIGHT_SQL_PORT = ConfigOptions.name("doris.read.arrow-flight-sql.port").intType().withoutDefaultValue().withDescription("");
 

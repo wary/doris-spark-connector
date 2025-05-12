@@ -39,7 +39,7 @@ abstract class DorisTableProviderBase extends TableProvider {
     if (t != null) t
     else {
       val dorisConfig = DorisConfig.fromMap(properties, false)
-      fillDefaultConfig(dorisConfig)
+      dorisConfig.setProperty(DorisOptions.DORIS_REQUEST_APP, SparkContext.getOrCreate().applicationId)
       val tableIdentifier = dorisConfig.getValue(DorisOptions.DORIS_TABLE_IDENTIFIER)
       val tableIdentifierArr = tableIdentifier.split("\\.")
       newTableInstance(Identifier.of(Array[String](tableIdentifierArr(0)), tableIdentifierArr(1)), dorisConfig, Some(schema))
@@ -50,7 +50,7 @@ abstract class DorisTableProviderBase extends TableProvider {
     if (t != null) t
     else {
       val dorisConfig = DorisConfig.fromMap(options, false)
-      fillDefaultConfig(dorisConfig)
+      dorisConfig.setProperty(DorisOptions.DORIS_REQUEST_APP, SparkContext.getOrCreate().applicationId)
       val tableIdentifier = dorisConfig.getValue(DorisOptions.DORIS_TABLE_IDENTIFIER)
       val tableIdentifierArr = tableIdentifier.split("\\.")
       newTableInstance(Identifier.of(Array[String](tableIdentifierArr(0)), tableIdentifierArr(1)), dorisConfig, None)
@@ -58,10 +58,9 @@ abstract class DorisTableProviderBase extends TableProvider {
   }
 
   private def fillDefaultConfig(config: DorisConfig): Unit = {
-    if (!config.contains(DorisOptions.DORIS_READ_FLIGHT_SQL_PREFIX)) {
-      config.setProperty(DorisOptions.DORIS_READ_FLIGHT_SQL_PREFIX,
-              s"SparkApp ${SparkContext.getOrCreate().applicationId} ArrowFlightSQL Query")
-      }
+      SparkContext.getOrCreate()
+
+
   }
 
   def newTableInstance(identifier: Identifier, config: DorisConfig, schema: Option[StructType]): Table;
