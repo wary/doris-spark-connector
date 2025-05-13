@@ -50,7 +50,7 @@ public class DorisOptions {
     public static final ConfigOption<Integer> DORIS_REQUEST_READ_TIMEOUT_MS = ConfigOptions.name("doris.request.read.timeout.ms").intType().defaultValue(30 * 1000).withDescription("");
     public static final ConfigOption<Integer> DORIS_REQUEST_QUERY_TIMEOUT_S = ConfigOptions.name("doris.request.query.timeout.s").intType().defaultValue(6 * 60 * 60).withDescription("");
 
-    public static final ConfigOption<Integer> DORIS_TABLET_SIZE = ConfigOptions.name("doris.request.tablet.size").intType().defaultValue(1).withDescription("");
+    public static final ConfigOption<Integer> DORIS_TABLET_SIZE = ConfigOptions.name("doris.request.tablet.size").intType().defaultValue(3).withDescription("");
 
     public static final ConfigOption<Integer> DORIS_BATCH_SIZE = ConfigOptions.name("doris.batch.size").intType().defaultValue(4064).withDescription("");
 
