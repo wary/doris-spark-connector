@@ -451,7 +451,7 @@ class DorisReaderITCase(readMode: String, flightSqlPort: Int) extends AbstractCo
       val orFilter = session.sql(
         """
           |select id from test_source
-          |where c15 is not null AND c12 = 'A' AND (c1 = 1 or c3 = 127 or c4 = 32767 or or c1 > 0)
+          |where c15 is not null AND c12 = 'A' AND (c1 = 1 or c3 = 127 or c4 = 32767 or c1 > 0)
           |""".stripMargin).collect()
       assert("List([1])".equals(orFilter.toList.toString()))
     } finally {
