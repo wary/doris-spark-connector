@@ -16,7 +16,7 @@
 // under the License.
 
 package org.apache.doris.spark.client;
-
+import java.util.concurrent.ThreadLocalRandom;
 import org.apache.doris.spark.client.entity.Backend;
 import org.apache.doris.spark.client.entity.Frontend;
 import org.apache.doris.spark.config.DorisConfig;
@@ -141,8 +141,8 @@ public class DorisFrontendClient implements Serializable {
                     .map(node -> {
                         String[] nodeParts = node.split(":");
                         return new Frontend(nodeParts[0], nodeParts.length > 1 ? Integer.parseInt(nodeParts[1]) : -1, queryPort, flightSqlPort);
-                    })
-                    .collect(Collectors.toList());
+                    }).sorted((a, b) -> ThreadLocalRandom.current().nextInt(-1, 2)
+                ).collect(Collectors.toList());
         }
     }
 
@@ -298,6 +298,7 @@ public class DorisFrontendClient implements Serializable {
                 frontends.add(new Frontend(row.get(hostIdx).asText(), row.get(httpPortIdx).asInt(), row.get(queryPortIdx).asInt(), row.get(flightSqlIdx).asInt()));
             }
         }
+        Collections.shuffle(frontends);
         return frontends;
     }
 
@@ -364,6 +365,7 @@ public class DorisFrontendClient implements Serializable {
                     backends.add(new Backend(backendNode.get("ip").asText(), backendNode.get("http_port").asInt(), -1));
                 }
             }
+            Collections.shuffle(backends);
             return backends;
         });
     }
