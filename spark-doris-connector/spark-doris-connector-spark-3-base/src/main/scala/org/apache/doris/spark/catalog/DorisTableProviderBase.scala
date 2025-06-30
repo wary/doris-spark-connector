@@ -53,7 +53,7 @@ abstract class DorisTableProviderBase extends TableProvider {
       sparkContext.getConf.get("spark.hadoop.lineage.taskId", "0"),
       sparkContext.getConf.get("spark.hadoop.lineage.das.execId", "0"),
       sparkContext.getConf.get("spark.hadoop.lineage.user", "unknown").split("@")(0),
-      "").mkString("_")
+      "").mkString("_").replaceAll("[^\\w-_]", ""),
   }
 
   private def getTable(options: CaseInsensitiveStringMap): Table = {

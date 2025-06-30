@@ -24,7 +24,7 @@
     <parent>
         <groupId>org.apache.doris</groupId>
         <artifactId>spark-load</artifactId>
-        <version>25.1.0.3-MUSIC-RELEASE</version>
+        <version>25.1.0.4-MUSIC-RELEASE</version>
     </parent>
 
     <artifactId>spark-load-core</artifactId>
