@@ -156,7 +156,7 @@ public class DorisFlightSqlReader extends DorisReader {
     private String generateQueryPrefix() throws OptionRequiredException {
         String prefix = config.getValue(DorisOptions.DORIS_READ_FLIGHT_SQL_PREFIX);
         if (StringUtils.isBlank(prefix)) {
-            prefix = String.format("SparkApp %s ArrowFlightQuery", config.getValue(DorisOptions.DORIS_REQUEST_APP));
+            prefix = String.format("%s ArrowFlightQuery", config.getValue(DorisOptions.DORIS_REQUEST_APP));
         }
         return String.format("/* %s */", prefix);
     }

@@ -39,11 +39,21 @@ abstract class DorisTableProviderBase extends TableProvider {
     if (t != null) t
     else {
       val dorisConfig = DorisConfig.fromMap(properties, false)
-      dorisConfig.setProperty(DorisOptions.DORIS_REQUEST_APP, SparkContext.getOrCreate().applicationId)
+      dorisConfig.setProperty(DorisOptions.DORIS_REQUEST_APP, getAppKey(SparkContext.getOrCreate()))
       val tableIdentifier = dorisConfig.getValue(DorisOptions.DORIS_TABLE_IDENTIFIER)
       val tableIdentifierArr = tableIdentifier.split("\\.")
       newTableInstance(Identifier.of(Array[String](tableIdentifierArr(0)), tableIdentifierArr(1)), dorisConfig, Some(schema))
     }
+  }
+
+  def getAppKey(sparkContext: SparkContext): String = {
+    List(
+      "spark",
+      sparkContext.applicationId,
+      sparkContext.getConf.get("spark.hadoop.lineage.taskId", "0"),
+      sparkContext.getConf.get("spark.hadoop.lineage.das.execId", "0"),
+      sparkContext.getConf.get("spark.hadoop.lineage.user", "unknown").split("@")(0),
+      "").mkString("_")
   }
 
   private def getTable(options: CaseInsensitiveStringMap): Table = {
