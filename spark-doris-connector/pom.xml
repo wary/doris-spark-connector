@@ -27,7 +27,7 @@
     </parent>
     <groupId>org.apache.doris</groupId>
     <artifactId>spark-doris-connector</artifactId>
-    <version>25.1.0.5-MUSIC-RELEASE</version>
+    <version>25.1.0.5-MUSIC-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Spark Doris Connector</name>
     <url>https://doris.apache.org/</url>
