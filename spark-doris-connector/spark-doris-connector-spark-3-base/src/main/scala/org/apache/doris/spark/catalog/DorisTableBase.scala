@@ -30,7 +30,6 @@ import org.apache.spark.sql.util.CaseInsensitiveStringMap
 
 import java.util
 import scala.collection.JavaConverters._
-import scala.collection.mutable
 import scala.language.implicitConversions
 
 
@@ -46,15 +45,11 @@ abstract class DorisTableBase(identifier: Identifier, config: DorisConfig, schem
   })
 
   override def capabilities(): util.Set[TableCapability] = {
-    val capabilities = mutable.Set(BATCH_READ,
+    Set(BATCH_READ,
       BATCH_WRITE,
       STREAMING_WRITE,
-      TRUNCATE)
-    val properties = config.getSinkProperties
-    if (properties.containsKey(DorisOptions.PARTIAL_COLUMNS) && "true".equalsIgnoreCase(properties.get(DorisOptions.PARTIAL_COLUMNS))) {
-      capabilities += ACCEPT_ANY_SCHEMA
-    }
-    capabilities.asJava
+      ACCEPT_ANY_SCHEMA,
+      TRUNCATE).asJava
   }
 
   override def newScanBuilder(caseInsensitiveStringMap: CaseInsensitiveStringMap): ScanBuilder = {
