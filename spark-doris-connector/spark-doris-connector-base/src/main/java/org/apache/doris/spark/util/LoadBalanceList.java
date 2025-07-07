@@ -1,6 +1,13 @@
 package org.apache.doris.spark.util;
 
-import java.util.*;
+import java.util.Map;
+import java.util.List;
+import java.util.Iterator;
+import java.util.Random;
+import java.util.Queue;
+import java.util.PriorityQueue;
+import java.util.Collections;
+
 import java.util.concurrent.ConcurrentHashMap;
 
 
