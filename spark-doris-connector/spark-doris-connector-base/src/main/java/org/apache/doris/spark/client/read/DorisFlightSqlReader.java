@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
 public class DorisFlightSqlReader extends DorisReader {
 
     private static final Logger log = LoggerFactory.getLogger(DorisFlightSqlReader.class);
-    private static final String PREFIX = "/* ApplicationName=Spark ArrowFlightSQL Query */";
+
     private final AtomicBoolean endOfStream = new AtomicBoolean(false);
     private final DorisFrontendClient frontendClient;
     private final Schema schema;
@@ -76,6 +76,7 @@ public class DorisFlightSqlReader extends DorisReader {
             } catch (OptionRequiredException e) {
                 throw new DorisException("init adbc connection failed", e);
             } catch (AdbcException e) {
+				frontendClient.getFrontends().reportFailed(frontend);
                 tx = new DorisException("init adbc connection failed", e);
             }
         }
