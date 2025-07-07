@@ -67,7 +67,7 @@ class Doris2DorisE2ECase(readMode: String, flightSqlPort: Int) extends AbstractC
     val session = SparkSession.builder().master("local[*]").getOrCreate()
     session.sql(
       s"""
-         |CREATE TEMPORARY VIEW test_source
+         |CREATE TEMPORARY VIEW test_source_e2e
          |USING doris
          |OPTIONS(
          | "table.identifier"="${DATABASE + "." + TABLE_READ_TBL_ALL_TYPES}",
@@ -93,7 +93,7 @@ class Doris2DorisE2ECase(readMode: String, flightSqlPort: Int) extends AbstractC
 
     session.sql(
       """
-        |insert into test_sink select * from test_source
+        |insert into test_sink select * from test_source_e2e
         |""".stripMargin)
     session.stop()
 
