@@ -17,6 +17,7 @@
 
 package org.apache.doris.spark.util;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.List;
 import java.util.Iterator;
@@ -28,7 +29,7 @@ import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 
 
-public class LoadBalanceList<T> implements Iterable<T> {
+public class LoadBalanceList<T> implements Iterable<T>, Serializable {
 
 	private final List<T> list;
 
@@ -82,7 +83,7 @@ public class LoadBalanceList<T> implements Iterable<T> {
 		this.failedServers.put(server, new FailedServer<T>(server));
 	}
 
-	private static class FailedServer<T> implements Comparable<FailedServer<T>> {
+	private static class FailedServer<T> implements Comparable<FailedServer<T>>, Serializable {
 
 		protected final T server;
 
