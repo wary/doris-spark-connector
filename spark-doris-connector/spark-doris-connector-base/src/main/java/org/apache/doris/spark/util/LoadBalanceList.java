@@ -15,18 +15,19 @@
 // specific language governing permissions and limitations
 // under the License.
 
+
 package org.apache.doris.spark.util;
 
 import java.io.Serializable;
 import java.util.Map;
 import java.util.List;
 import java.util.Iterator;
-import java.util.Random;
 import java.util.Queue;
 import java.util.PriorityQueue;
 import java.util.Collections;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class LoadBalanceList<T> implements Iterable<T>, Serializable {
@@ -34,6 +35,8 @@ public class LoadBalanceList<T> implements Iterable<T>, Serializable {
 	private final List<T> list;
 
 	private final Map<T, FailedServer<T>> failedServers;
+
+	private final AtomicInteger globalOffset = new AtomicInteger(0);
 
 	private static final long FAILED_TIME_OUT = 60 * 60 * 1000;
 
@@ -45,7 +48,7 @@ public class LoadBalanceList<T> implements Iterable<T>, Serializable {
 	@Override
 	public Iterator<T> iterator() {
 		return new Iterator<T>() {
-			final int offset = Math.abs(new Random().nextInt());
+			final int offset = globalOffset.getAndAdd(1);
 			final Queue<FailedServer<T>> skipServers = new PriorityQueue<>();
 			int index = 0;
 
@@ -57,7 +60,7 @@ public class LoadBalanceList<T> implements Iterable<T>, Serializable {
 			@Override
 			public T next() {
 				if (index < list.size()) {
-					T server = list.get((offset + index++) % list.size());
+					T server = list.get(Math.abs(offset + index++) % list.size());
 					FailedServer failedEntry = failedServers.get(server);
 					if (failedEntry != null) {
 						if (System.currentTimeMillis() - failedEntry.failedTime > FAILED_TIME_OUT) {

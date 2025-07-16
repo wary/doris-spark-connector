@@ -17,9 +17,7 @@
 
 package org.apache.doris.spark.client;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.doris.spark.client.entity.Backend;
-import org.apache.doris.spark.util.LoadBalanceList;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
@@ -52,7 +50,7 @@ public class DorisBackendHttpClient implements Serializable {
                 return reqFunc.apply(backend, httpClient);
             } catch (Exception e) {
                 log.warn("Failed to execute request on backend: {}:{}", backend.getHost(), backend.getHttpPort(), e);
-				backends.reportFailed(backend);
+                backends.reportFailed(backend);
                 ex = e;
             }
         }

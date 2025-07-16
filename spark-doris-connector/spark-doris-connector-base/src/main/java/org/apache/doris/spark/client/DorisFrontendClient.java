@@ -97,9 +97,9 @@ public class DorisFrontendClient implements Serializable {
     private LoadBalanceList<Frontend> initFrontends(DorisConfig config) throws Exception {
         String frontendNodes = config.getValue(DorisOptions.DORIS_FENODES);
         String[] frontendNodeArray = frontendNodes.split(",");
+        List<Frontend> frontendList = null;
         if (config.getValue(DorisOptions.DORIS_FE_AUTO_FETCH)) {
             Exception ex = null;
-            List<Frontend> frontendList = null;
             for (String frontendNode : frontendNodeArray) {
                 String[] nodeDetails = frontendNode.split(":");
                 try {
@@ -162,7 +162,7 @@ public class DorisFrontendClient implements Serializable {
                 return reqFunc.apply(frontEnd, httpClient);
             } catch (Exception e) {
                 LOG.warn("fe http request on {} failed, err: {}", frontEnd.hostHttpPortString(), e.getMessage());
-				frontEnds.reportFailed(frontEnd);
+                frontEnds.reportFailed(frontEnd);
                 ex = e;
             }
         }
@@ -367,6 +367,7 @@ public class DorisFrontendClient implements Serializable {
                     backends.add(new Backend(backendNode.get("ip").asText(), backendNode.get("http_port").asInt(), -1));
                 }
             }
+            Collections.shuffle(backends);
             return backends;
         });
     }

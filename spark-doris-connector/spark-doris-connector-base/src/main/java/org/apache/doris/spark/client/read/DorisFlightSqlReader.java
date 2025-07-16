@@ -55,7 +55,6 @@ import java.util.stream.Collectors;
 public class DorisFlightSqlReader extends DorisReader {
 
     private static final Logger log = LoggerFactory.getLogger(DorisFlightSqlReader.class);
-
     private final AtomicBoolean endOfStream = new AtomicBoolean(false);
     private final DorisFrontendClient frontendClient;
     private final Schema schema;
@@ -69,14 +68,14 @@ public class DorisFlightSqlReader extends DorisReader {
         Exception tx = null;
         for (Frontend frontend : frontendClient.getFrontends()) {
             try {
-                log.info("init flight connection with frontend: " + frontend.getHost());
                 this.connection = initializeConnection(frontend, partition.getConfig());
                 tx = null;
                 break;
             } catch (OptionRequiredException e) {
                 throw new DorisException("init adbc connection failed", e);
             } catch (AdbcException e) {
-				frontendClient.getFrontends().reportFailed(frontend);
+                frontendClient.getFrontends().reportFailed(frontend);
+                log.warn("init adbc connection failed with fe: " + frontend.getHost(), e);
                 tx = new DorisException("init adbc connection failed", e);
             }
         }
@@ -163,9 +162,6 @@ public class DorisFlightSqlReader extends DorisReader {
 
     private String generateQueryPrefix() throws OptionRequiredException {
         String prefix = config.getValue(DorisOptions.DORIS_READ_FLIGHT_SQL_PREFIX);
-        if (StringUtils.isBlank(prefix)) {
-            prefix = String.format("%s ArrowFlightQuery", config.getValue(DorisOptions.DORIS_REQUEST_APP));
-        }
         return String.format("/* %s */", prefix);
     }
 
