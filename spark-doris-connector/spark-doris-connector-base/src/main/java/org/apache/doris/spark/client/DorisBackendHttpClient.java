@@ -18,8 +18,9 @@
 package org.apache.doris.spark.client;
 
 import org.apache.doris.spark.client.entity.Backend;
+import org.apache.doris.spark.util.DorisHttpClients;
+import org.apache.doris.spark.util.LoadBalanceList;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +43,8 @@ public class DorisBackendHttpClient implements Serializable {
 
     public <T> T executeReq(BiFunction<Backend, CloseableHttpClient, T> reqFunc) throws Exception {
         if (httpClient == null) {
-            httpClient = HttpClients.createDefault();
+            httpClient = DorisHttpClients.createDefault();
+
         }
         Exception ex = null;
         for (Backend backend : backends) {

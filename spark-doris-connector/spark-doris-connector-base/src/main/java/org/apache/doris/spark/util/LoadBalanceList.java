@@ -38,7 +38,7 @@ public class LoadBalanceList<T> implements Iterable<T>, Serializable {
 
 	private final AtomicInteger globalOffset = new AtomicInteger(0);
 
-	private static final long FAILED_TIME_OUT = 60 * 60 * 1000;
+	private static final long FAILED_TIME_OUT = 30 * 60 * 1000;
 
 	public LoadBalanceList(List<T> servers) {
 		this.list = Collections.unmodifiableList(servers);

@@ -34,7 +34,7 @@ import scala.util.{Failure, Success, Try}
 object HttpUtils {
 
   def getHttpClient(config: DorisConfig): CloseableHttpClient = {
-    val builder = HttpClients.custom()
+    val builder = DorisHttpClients.custom()
       .setRequestExecutor(new HttpRequestExecutor(60000))
       .setRedirectStrategy(new DefaultRedirectStrategy {
         override def isRedirectable(method: String): Boolean = true
