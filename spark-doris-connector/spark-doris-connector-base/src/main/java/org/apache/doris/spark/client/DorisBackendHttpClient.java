@@ -18,6 +18,7 @@
 package org.apache.doris.spark.client;
 
 import org.apache.doris.spark.client.entity.Backend;
+import org.apache.doris.spark.util.LoadBalanceList;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
