@@ -70,7 +70,7 @@ public class DorisFlightSqlReader extends DorisReader {
 				this.connection = initializeConnection(frontend, partition.getConfig());
 				String initSQL = config.getValue(DorisOptions.DORIS_READ_FLIGHT_SQL_INIT_SQL);
 				if (StringUtils.isNotBlank(initSQL)) {
-					for (String stmt : StringUtils.split(";")) {
+					for (String stmt : StringUtils.split(initSQL, ";")) {
 						if (StringUtils.isNotBlank(stmt)) {
 							executeStmt(stmt);
 						}
