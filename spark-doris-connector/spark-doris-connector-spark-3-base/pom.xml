@@ -24,7 +24,7 @@
     <parent>
         <groupId>org.apache.doris</groupId>
         <artifactId>spark-doris-connector</artifactId>
-        <version>25.1.0.10-MUSIC-RELEASE</version>
+        <version>25.1.0.11-MUSIC-SNAPSHOT</version>
     </parent>
 
     <artifactId>spark-doris-connector-spark-3-base</artifactId>
